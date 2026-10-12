@@ -33,6 +33,8 @@ public sealed class DownloadService : IDisposable
     }
 
     /// <summary>Items intended for binding to the Downloads side panel.</summary>
+    public bool HasActiveDownloads => _activeDownloads.Count > 0;
+
     public ObservableCollection<DownloadItemViewModel> Downloads { get; }
 
     /// <summary>
