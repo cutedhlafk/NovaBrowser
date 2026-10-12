@@ -167,14 +167,14 @@ public partial class PrivateWindow : Window
         }
     }
 
-    private void AddressKeyDown(object sender, KeyEventArgs e)
+    private void AddressKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key != Key.Enter) return;
         e.Handled = true;
         NavigateAddress();
     }
 
-    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         var ctrl = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
         if (!ctrl) return;
