@@ -21,6 +21,8 @@ public sealed class BrowserTabViewModel : ObservableObject, IMemoryManagedTab, I
     private bool _canGoBack;
     private bool _canGoForward;
     private bool _isActive;
+    private bool _isAudioPlaying;
+    private bool _isDisposed;
     private DateTimeOffset _inactiveSinceUtc;
     private string _statusText = "Gotowe";
     private string? _loadError;
@@ -102,6 +104,14 @@ public sealed class BrowserTabViewModel : ObservableObject, IMemoryManagedTab, I
         internal set => SetProperty(ref _canGoForward, value);
     }
 
+    public bool IsAudioPlaying
+    {
+        get => _isAudioPlaying;
+        internal set => SetProperty(ref _isAudioPlaying, value);
+    }
+
+    internal bool IsDisposed => _isDisposed;
+
     public bool IsActive
     {
         get => _isActive;
@@ -164,6 +174,7 @@ public sealed class BrowserTabViewModel : ObservableObject, IMemoryManagedTab, I
 
     public void Dispose()
     {
+        _isDisposed = true;
         _memoryTargetSetter = null;
         CoreWebView = null;
         BrowserView?.Dispose();
