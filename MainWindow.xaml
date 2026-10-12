@@ -277,6 +277,10 @@
                                     <Button DockPanel.Dock="Right" Style="{StaticResource SubtleButtonStyle}" Content="Wybierz" Command="{Binding ChooseDownloadFolderCommand}" />
                                     <TextBox Text="{Binding DownloadFolder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
                                 </DockPanel>
+                                <TextBlock Text="NovaBlock — reklamy i trackery" FontWeight="SemiBold" Margin="0,0,0,6" />
+                                <TextBlock Text="{Binding NovaBlockStatus}" TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" />
+                                <Button Style="{StaticResource SubtleButtonStyle}" Content="Włącz / wyłącz NovaBlock" Command="{Binding ToggleNovaBlockCommand}" Margin="0,6,0,8" />
+                                <Button Style="{StaticResource SubtleButtonStyle}" Content="{Binding NovaBlockSiteStatus}" Command="{Binding ToggleSiteProtectionCommand}" Margin="0,0,0,16" />
                                 <TextBlock Text="Oszczędzanie pamięci" Style="{StaticResource MutedTextStyle}" />
                                 <ComboBox ItemsSource="{Binding MemoryModeOptions}" SelectedItem="{Binding SelectedMemoryMode}" Margin="0,4,0,16" />
                                 <TextBlock Text="Tryb zbalansowany obniża docelowe zużycie pamięci kart nieaktywnych dłużej niż 3 minuty. Karty nie są przeładowywane." TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" FontSize="12" Margin="0,0,0,16" />
