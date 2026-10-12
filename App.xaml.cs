@@ -3,10 +3,13 @@ using NovaBrowser.Models;
 using NovaBrowser.Services;
 using NovaBrowser.ViewModels;
 
+
 namespace NovaBrowser;
 
 public partial class App : System.Windows.Application
 {
+    internal bool IsAbortingStartup { get; private set; }
+
     private SqliteDatabase? _database;
     private BrowserShellViewModel? _shell;
 
@@ -43,15 +46,20 @@ public partial class App : System.Windows.Application
             window.Show();
             await _shell.InitializeAsync();
         }
+
         catch (Exception exception)
         {
+            IsAbortingStartup = true;
+
             System.Windows.MessageBox.Show(
-                $"NovaBrowser nie mógł zostać uruchomiony.\n\n{exception.Message}",
+                exception.ToString(),
                 "Błąd uruchamiania NovaBrowser",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
+
             Shutdown(-1);
         }
+
     }
 
     protected override void OnExit(ExitEventArgs e)

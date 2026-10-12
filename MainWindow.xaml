@@ -9,14 +9,6 @@
         MinHeight="620"
         PreviewKeyDown="Window_OnPreviewKeyDown"
         Closing="Window_OnClosing">
-    <Window.InputBindings>
-        <KeyBinding Key="T" Modifiers="Control" Command="{Binding NewTabCommand}" />
-        <KeyBinding Key="W" Modifiers="Control" Command="{Binding CloseActiveTabCommand}" />
-        <KeyBinding Key="L" Modifiers="Control" Command="{Binding FocusAddressCommand}" />
-        <KeyBinding Key="Tab" Modifiers="Control" Command="{Binding NextTabCommand}" />
-        <KeyBinding Key="T" Modifiers="Control+Shift" Command="{Binding RestoreClosedTabCommand}" />
-    </Window.InputBindings>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="44" />

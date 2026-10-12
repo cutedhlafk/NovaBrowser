@@ -60,36 +60,45 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void Window_OnClosing(object? sender, CancelEventArgs e)
+
+    private async void Window_OnClosing(
+        object? sender, CancelEventArgs e)
     {
-        if (_allowClose)
+        if (_allowClose ||
+    (System.Windows.Application.Current is App app &&
+     app.IsAbortingStartup))
         {
             return;
         }
 
         e.Cancel = true;
+
         if (_shutdownInProgress)
-        {
             return;
-        }
 
         _shutdownInProgress = true;
+
         try
         {
             await _viewModel.ShutdownAsync();
+
             _allowClose = true;
-            Close();
+
+            // Zamknięcie dopiero po zakończeniu zdarzenia Closing
+            _ = Dispatcher.BeginInvoke(new Action(Close));
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
             _shutdownInProgress = false;
+
             System.Windows.MessageBox.Show(
-                $"Nie udało się bezpiecznie zamknąć NovaBrowser.\n\n{exception.Message}",
-                "Błąd zamykania",
+                ex.ToString(),
+                "Błąd zamykania NovaBrowser",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+                MessageBoxImage.Error);
         }
     }
+
 
     private void FocusAddress()
     {
