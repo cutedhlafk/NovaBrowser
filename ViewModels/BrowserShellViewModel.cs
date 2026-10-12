@@ -64,6 +64,7 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         _novaBlock = novaBlock;
         _novaBlock.StateChanged += OnNovaBlockChanged;
         _memoryManager.HasActiveDownloads = () => _downloadService.HasActiveDownloads;
+        _memoryManager.PolicyEvaluated += OnMemoryPolicyEvaluated;
 
         _browserEngine.NewTabRequestedAsync = url => CreateTabAsync(url, select: true);
         _browserEngine.PageVisitedAsync = OnPageVisitedAsync;
@@ -251,7 +252,7 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
     }
 
     public string MemoryStatusText =>
-        $"RAM: {SelectedMemoryMode} • kart Low: {_memoryManager.LowTargetTabCount}";
+        $"RAM: {SelectedMemoryMode} • cel Low: {_memoryManager.LowTargetTabCount} kart";
 
     public bool NovaBlockEnabled
     {
@@ -399,6 +400,7 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
 
         _tabHandlers.Clear();
         _novaBlock.StateChanged -= OnNovaBlockChanged;
+        _memoryManager.PolicyEvaluated -= OnMemoryPolicyEvaluated;
     }
 
     private async Task CreateTabAsync(string? url = null, string? title = null, bool select = true)
@@ -645,6 +647,8 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         Bookmarks.Remove(bookmark);
     }
 
+
+    private void OnMemoryPolicyEvaluated() => OnPropertyChanged(nameof(MemoryStatusText));
 
     private void OnNovaBlockChanged()
     {
