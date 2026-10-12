@@ -24,6 +24,8 @@ public interface IMemoryManagedTab
 {
     bool IsActive { get; }
 
+    bool IsAudioPlaying { get; }
+
     DateTimeOffset InactiveSinceUtc { get; }
 
     void SetMemoryTarget(MemoryTargetLevel level);
@@ -65,6 +67,11 @@ public sealed class MemoryManager : IDisposable
     /// Conservative uses a one-minute idle period.
     /// </summary>
     public MemorySavingMode Mode { get; private set; } = MemorySavingMode.Balanced;
+
+    /// <summary>While downloads are in progress, keep all tabs in Normal mode.</summary>
+    public Func<bool>? HasActiveDownloads { get; set; }
+
+    public int LowTargetTabCount => _appliedTargets.Count(pair => pair.Value == MemoryTargetLevel.Low);
 
     public int RegisteredTabCount
     {
@@ -210,7 +217,7 @@ public sealed class MemoryManager : IDisposable
 
     private void EvaluateTab(IMemoryManagedTab tab, DateTimeOffset now)
     {
-        if (tab.IsActive)
+        if (tab.IsActive || tab.IsAudioPlaying || HasActiveDownloads?.Invoke() == true)
         {
             ApplyTarget(tab, MemoryTargetLevel.Normal);
             return;
