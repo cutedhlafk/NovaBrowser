@@ -347,244 +347,306 @@
 
 					<Grid Grid.Row="1">
 
-						<!-- HISTORIA -->
-						<Grid>
-							<Grid.Style>
-								<Style TargetType="{x:Type Grid}">
-									<Setter Property="Visibility" Value="Collapsed" />
-									<Style.Triggers>
-										<DataTrigger Binding="{Binding SidePanel}"
+						
+                        <!-- History -->
+                        <Grid>
+                            <Grid.Style>
+                                <Style TargetType="{x:Type Grid}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SidePanel}"
                                                      Value="{x:Static vm:SidePanelKind.History}">
-											<Setter Property="Visibility" Value="Visible" />
-										</DataTrigger>
-									</Style.Triggers>
-								</Style>
-							</Grid.Style>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Margin="0,0,0,14">
+                                <TextBlock Text="Ostatnio odwiedzone strony."
+                                           Style="{StaticResource MutedTextStyle}"
+                                           TextWrapping="Wrap" FontSize="12"
+                                           Margin="0,0,0,11" />
+                                <WrapPanel>
+                                    <Button Style="{StaticResource SubtleButtonStyle}" Content="Odśwież" Command="{Binding RefreshHistoryCommand}" />
+                                    <Button Style="{StaticResource SubtleButtonStyle}" Content="Wyczyść historię" Command="{Binding ClearHistoryCommand}" />
+                                </WrapPanel>
+                            </StackPanel>
+                            
+                            <Grid Grid.Row="1">
+                                <ListBox x:Name="HistoryList"
+                                         ItemsSource="{Binding HistoryEntries}"
+                                         ItemContainerStyle="{StaticResource LibraryCardListItemStyle}"
+                                         BorderThickness="0" Background="Transparent"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.CanContentScroll="True">
+                                    <ListBox.ItemTemplate>
+                                        
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="30" />
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0"
+                                                        Style="{StaticResource LibraryLinkButtonStyle}"
+                                                        ToolTip="{Binding Url}"
+                                                        Command="{Binding DataContext.NavigateHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   Style="{StaticResource LibraryTitleStyle}" />
+                                                        <TextBlock Text="{Binding Url}"
+                                                                   Style="{StaticResource LibraryUrlStyle}" />
+                                                        <TextBlock Text="{Binding VisitedAt, StringFormat={}{0:dd.MM.yyyy HH:mm}}"
+                                                                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"
+                                                                           Margin="0,5,0,0" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button Grid.Column="1" Width="27" Height="27" Margin="1,0,0,0"
+                                                        Style="{StaticResource ToolbarButtonStyle}" Content="×"
+                                                        FontSize="15" ToolTip="Usuń wpis"
+                                                        VerticalAlignment="Top"
+                                                        Command="{Binding DataContext.DeleteHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                
+                                <Border>
+                                    <Border.Style>
+                                        <Style TargetType="{x:Type Border}" BasedOn="{StaticResource LibraryEmptyStateStyle}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=HistoryList, Path=HasItems}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <StackPanel HorizontalAlignment="Center" MaxWidth="255">
+                                        <TextBlock Text="◷" FontSize="27" HorizontalAlignment="Center"
+                                                   Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,9" />
+                                        <TextBlock Text="Brak historii" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   FontSize="14" FontWeight="SemiBold" TextAlignment="Center" />
+                                        <TextBlock Text="Odwiedzone strony pojawią się tutaj." Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
+                                                   Margin="0,7,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Grid>
 
-							<Grid.RowDefinitions>
-								<RowDefinition Height="Auto" />
-								<RowDefinition Height="*" />
-							</Grid.RowDefinitions>
-
-							<StackPanel Grid.Row="0"
-                                        Orientation="Horizontal"
-                                        Margin="0,0,0,8">
-								<Button Style="{StaticResource SubtleButtonStyle}"
-                                        Content="Odśwież"
-                                        Command="{Binding RefreshHistoryCommand}" />
-
-								<Button Style="{StaticResource SubtleButtonStyle}"
-                                        Content="Wyczyść historię"
-                                        Command="{Binding ClearHistoryCommand}" />
-							</StackPanel>
-
-							<ListBox Grid.Row="1"
-                                     ItemsSource="{Binding HistoryEntries}"
-                                     ItemContainerStyle="{StaticResource PanelListItemStyle}"
-                                     BorderThickness="0"
-                                     Background="Transparent">
-
-								<ListBox.ItemTemplate>
-									<DataTemplate>
-										<Grid>
-											<Grid.ColumnDefinitions>
-												<ColumnDefinition Width="*" />
-												<ColumnDefinition Width="30" />
-											</Grid.ColumnDefinitions>
-
-											<Button Grid.Column="0"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Padding="0"
-                                                    HorizontalContentAlignment="Left"
-                                                    Command="{Binding DataContext.NavigateHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    CommandParameter="{Binding}">
-
-												<StackPanel>
-													<TextBlock Text="{Binding Title}"
-                                                               TextTrimming="CharacterEllipsis" />
-
-													<TextBlock Text="{Binding Url}"
-                                                               Style="{StaticResource MutedTextStyle}"
-                                                               FontSize="11"
-                                                               TextTrimming="CharacterEllipsis" />
-
-													<TextBlock Text="{Binding VisitedAt, StringFormat={}{0:dd.MM.yyyy HH:mm}}"
-                                                               Style="{StaticResource MutedTextStyle}"
-                                                               FontSize="11" />
-												</StackPanel>
-											</Button>
-
-											<Button Grid.Column="1"
-                                                    Style="{StaticResource ToolbarButtonStyle}"
-                                                    Content="×"
-                                                    FontSize="14"
-                                                    ToolTip="Usuń wpis"
-                                                    Command="{Binding DataContext.DeleteHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    CommandParameter="{Binding}" />
-										</Grid>
-									</DataTemplate>
-								</ListBox.ItemTemplate>
-							</ListBox>
-						</Grid>
-
-						<!-- ZAKŁADKI -->
-						<Grid>
-							<Grid.Style>
-								<Style TargetType="{x:Type Grid}">
-									<Setter Property="Visibility" Value="Collapsed" />
-									<Style.Triggers>
-										<DataTrigger Binding="{Binding SidePanel}"
+                        
+                        <!-- Bookmarks -->
+                        <Grid>
+                            <Grid.Style>
+                                <Style TargetType="{x:Type Grid}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SidePanel}"
                                                      Value="{x:Static vm:SidePanelKind.Bookmarks}">
-											<Setter Property="Visibility" Value="Visible" />
-										</DataTrigger>
-									</Style.Triggers>
-								</Style>
-							</Grid.Style>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Margin="0,0,0,14">
+                                <TextBlock Text="Twoje zapisane strony w jednym miejscu."
+                                           Style="{StaticResource MutedTextStyle}"
+                                           TextWrapping="Wrap" FontSize="12"
+                                           Margin="0,0,0,11" />
+                                <WrapPanel>
+                                    <Button Style="{StaticResource SubtleButtonStyle}" Content="Dodaj bieżącą" Command="{Binding AddCurrentBookmarkCommand}" />
+                                    <Button Style="{StaticResource SubtleButtonStyle}" Content="Odśwież" Command="{Binding RefreshBookmarksCommand}" />
+                                </WrapPanel>
+                            </StackPanel>
+                            
+                            <Grid Grid.Row="1">
+                                <ListBox x:Name="BookmarksList"
+                                         ItemsSource="{Binding Bookmarks}"
+                                         ItemContainerStyle="{StaticResource LibraryCardListItemStyle}"
+                                         BorderThickness="0" Background="Transparent"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.CanContentScroll="True">
+                                    <ListBox.ItemTemplate>
+                                        
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="30" />
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0"
+                                                        Style="{StaticResource LibraryLinkButtonStyle}"
+                                                        ToolTip="{Binding Url}"
+                                                        Command="{Binding DataContext.NavigateBookmarkCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   Style="{StaticResource LibraryTitleStyle}" />
+                                                        <TextBlock Text="{Binding Url}"
+                                                                   Style="{StaticResource LibraryUrlStyle}" />
+                                                        
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button Grid.Column="1" Width="27" Height="27" Margin="1,0,0,0"
+                                                        Style="{StaticResource ToolbarButtonStyle}" Content="×"
+                                                        FontSize="15" ToolTip="Usuń zakładkę"
+                                                        VerticalAlignment="Top"
+                                                        Command="{Binding DataContext.DeleteBookmarkCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                
+                                <Border>
+                                    <Border.Style>
+                                        <Style TargetType="{x:Type Border}" BasedOn="{StaticResource LibraryEmptyStateStyle}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=BookmarksList, Path=HasItems}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <StackPanel HorizontalAlignment="Center" MaxWidth="255">
+                                        <TextBlock Text="☆" FontSize="27" HorizontalAlignment="Center"
+                                                   Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,9" />
+                                        <TextBlock Text="Brak zakładek" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   FontSize="14" FontWeight="SemiBold" TextAlignment="Center" />
+                                        <TextBlock Text="Użyj gwiazdki na pasku adresu, aby zapisać stronę." Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
+                                                   Margin="0,7,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Grid>
 
-							<Grid.RowDefinitions>
-								<RowDefinition Height="Auto" />
-								<RowDefinition Height="*" />
-							</Grid.RowDefinitions>
-
-							<StackPanel Grid.Row="0"
-                                        Orientation="Horizontal"
-                                        Margin="0,0,0,8">
-
-								<Button Style="{StaticResource SubtleButtonStyle}"
-                                        Content="Dodaj bieżącą"
-                                        Command="{Binding AddCurrentBookmarkCommand}" />
-
-								<Button Style="{StaticResource SubtleButtonStyle}"
-                                        Content="Odśwież"
-                                        Command="{Binding RefreshBookmarksCommand}" />
-							</StackPanel>
-
-							<ListBox Grid.Row="1"
-                                     ItemsSource="{Binding Bookmarks}"
-                                     ItemContainerStyle="{StaticResource PanelListItemStyle}"
-                                     BorderThickness="0"
-                                     Background="Transparent">
-
-								<ListBox.ItemTemplate>
-									<DataTemplate>
-										<Grid>
-											<Grid.ColumnDefinitions>
-												<ColumnDefinition Width="*" />
-												<ColumnDefinition Width="30" />
-											</Grid.ColumnDefinitions>
-
-											<Button Grid.Column="0"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Padding="0"
-                                                    HorizontalContentAlignment="Left"
-                                                    Command="{Binding DataContext.NavigateBookmarkCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    CommandParameter="{Binding}">
-
-												<StackPanel>
-													<TextBlock Text="{Binding Title}"
-                                                               TextTrimming="CharacterEllipsis" />
-
-													<TextBlock Text="{Binding Url}"
-                                                               Style="{StaticResource MutedTextStyle}"
-                                                               FontSize="11"
-                                                               TextTrimming="CharacterEllipsis" />
-												</StackPanel>
-											</Button>
-
-											<Button Grid.Column="1"
-                                                    Style="{StaticResource ToolbarButtonStyle}"
-                                                    Content="×"
-                                                    FontSize="14"
-                                                    ToolTip="Usuń zakładkę"
-                                                    Command="{Binding DataContext.DeleteBookmarkCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    CommandParameter="{Binding}" />
-										</Grid>
-									</DataTemplate>
-								</ListBox.ItemTemplate>
-							</ListBox>
-						</Grid>
-
-						<!-- POBIERANIE -->
-						<Grid>
-							<Grid.Style>
-								<Style TargetType="{x:Type Grid}">
-									<Setter Property="Visibility" Value="Collapsed" />
-									<Style.Triggers>
-										<DataTrigger Binding="{Binding SidePanel}"
+                        
+                        <!-- Downloads -->
+                        <Grid>
+                            <Grid.Style>
+                                <Style TargetType="{x:Type Grid}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SidePanel}"
                                                      Value="{x:Static vm:SidePanelKind.Downloads}">
-											<Setter Property="Visibility" Value="Visible" />
-										</DataTrigger>
-									</Style.Triggers>
-								</Style>
-							</Grid.Style>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Margin="0,0,0,14">
+                                <TextBlock Text="Zarządzaj pobieranymi plikami."
+                                           Style="{StaticResource MutedTextStyle}"
+                                           TextWrapping="Wrap" FontSize="12"
+                                           Margin="0,0,0,11" />
+                                <WrapPanel>
+                                    <Button Style="{StaticResource SubtleButtonStyle}" Content="Otwórz folder" Command="{Binding OpenDownloadsFolderCommand}" />
+                                    <Button Style="{StaticResource SubtleButtonStyle}" Content="Wyczyść ukończone" Command="{Binding ClearFinishedDownloadsCommand}" />
+                                </WrapPanel>
+                            </StackPanel>
+                            
+                            <Grid Grid.Row="1">
+                                <ListBox x:Name="DownloadsList"
+                                         ItemsSource="{Binding Downloads}"
+                                         ItemContainerStyle="{StaticResource LibraryCardListItemStyle}"
+                                         BorderThickness="0" Background="Transparent"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.CanContentScroll="True">
+                                    <ListBox.ItemTemplate>
+                                        
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Grid Grid.Row="0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding FileName}"
+                                                               Style="{StaticResource LibraryTitleStyle}"
+                                                               ToolTip="{Binding FileName}"
+                                                               Margin="0,0,8,0" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding ProgressText}"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               FontSize="11" VerticalAlignment="Center" />
+                                                </Grid>
+                                                <ProgressBar Grid.Row="1" Height="5" Margin="0,12,0,10"
+                                                             Minimum="0" Maximum="100"
+                                                             Background="{DynamicResource InputBackgroundBrush}"
+                                                             Foreground="{DynamicResource AccentBrush}"
+                                                             BorderThickness="0" Value="{Binding ProgressPercent}"
+                                                             Visibility="{Binding HasKnownProgress, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                <Grid Grid.Row="2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="30" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding StateText}" FontSize="11"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <Button Grid.Column="1" Style="{StaticResource ToolbarButtonStyle}"
+                                                            Width="27" Height="27" Margin="1,0,0,0" Content="×"
+                                                            FontSize="15" ToolTip="Anuluj pobieranie"
+                                                            Command="{Binding CancelCommand}" />
+                                                </Grid>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                
+                                <Border>
+                                    <Border.Style>
+                                        <Style TargetType="{x:Type Border}" BasedOn="{StaticResource LibraryEmptyStateStyle}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=DownloadsList, Path=HasItems}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <StackPanel HorizontalAlignment="Center" MaxWidth="255">
+                                        <TextBlock Text="↓" FontSize="27" HorizontalAlignment="Center"
+                                                   Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,9" />
+                                        <TextBlock Text="Brak pobieranych plików" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   FontSize="14" FontWeight="SemiBold" TextAlignment="Center" />
+                                        <TextBlock Text="Tutaj zobaczysz postęp i stan pobierania." Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
+                                                   Margin="0,7,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Grid>
 
-							<Grid.RowDefinitions>
-								<RowDefinition Height="Auto" />
-								<RowDefinition Height="*" />
-							</Grid.RowDefinitions>
-
-							<StackPanel Grid.Row="0"
-                                        Orientation="Horizontal"
-                                        Margin="0,0,0,8">
-
-								<Button Style="{StaticResource SubtleButtonStyle}"
-                                        Content="Otwórz folder"
-                                        Command="{Binding OpenDownloadsFolderCommand}" />
-
-								<Button Style="{StaticResource SubtleButtonStyle}"
-                                        Content="Wyczyść ukończone"
-                                        Command="{Binding ClearFinishedDownloadsCommand}" />
-							</StackPanel>
-
-							<ListBox Grid.Row="1"
-                                     ItemsSource="{Binding Downloads}"
-                                     ItemContainerStyle="{StaticResource PanelListItemStyle}"
-                                     BorderThickness="0"
-                                     Background="Transparent">
-
-								<ListBox.ItemTemplate>
-									<DataTemplate>
-										<StackPanel>
-											<DockPanel>
-												<TextBlock DockPanel.Dock="Right"
-                                                           Text="{Binding ProgressText}"
-                                                           Style="{StaticResource MutedTextStyle}"
-                                                           FontSize="11" />
-
-												<TextBlock Text="{Binding FileName}"
-                                                           TextTrimming="CharacterEllipsis" />
-											</DockPanel>
-
-											<ProgressBar Height="4"
-                                                         Margin="0,6,0,4"
-                                                         Minimum="0"
-                                                         Maximum="100"
-                                                         Value="{Binding ProgressPercent}"
-                                                         Visibility="{Binding HasKnownProgress, Converter={StaticResource BooleanToVisibilityConverter}}" />
-
-											<DockPanel>
-												<TextBlock Text="{Binding StateText}"
-                                                           Style="{StaticResource MutedTextStyle}"
-                                                           FontSize="11" />
-
-												<Button DockPanel.Dock="Right"
-                                                        Style="{StaticResource ToolbarButtonStyle}"
-                                                        Width="28"
-                                                        Height="24"
-                                                        Content="×"
-                                                        FontSize="14"
-                                                        ToolTip="Anuluj"
-                                                        Command="{Binding CancelCommand}" />
-											</DockPanel>
-										</StackPanel>
-									</DataTemplate>
-								</ListBox.ItemTemplate>
-							</ListBox>
-						</Grid>
-
-						<!-- USTAWIENIA -->
+                        <!-- USTAWIENIA -->
 						<ScrollViewer VerticalScrollBarVisibility="Auto">
 							<ScrollViewer.Style>
 								<Style TargetType="{x:Type ScrollViewer}">
