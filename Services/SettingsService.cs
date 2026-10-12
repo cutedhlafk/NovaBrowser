@@ -16,6 +16,8 @@ public sealed class SettingsService
     private const string RestoreSessionKey = "restore_session";
     private const string DownloadFolderKey = "download_folder";
     private const string MemoryModeKey = "memory_mode";
+    private const string AdBlockEnabledKey = "adblock_enabled";
+    private const string AdBlockExceptionsKey = "adblock_exceptions";
 
     private readonly SqliteDatabase _database;
 
@@ -35,7 +37,7 @@ public sealed class SettingsService
         command.CommandText = """
             SELECT key, value
             FROM settings
-            WHERE key IN ($theme, $searchEngine, $homePage, $restoreSession, $downloadFolder, $memoryMode);
+            WHERE key IN ($theme, $searchEngine, $homePage, $restoreSession, $downloadFolder, $memoryMode, $adBlockEnabled, $adBlockExceptions);
             """;
         command.Parameters.Add("$theme", SqliteType.Text).Value = ThemeKey;
         command.Parameters.Add("$searchEngine", SqliteType.Text).Value = SearchEngineKey;
@@ -43,6 +45,8 @@ public sealed class SettingsService
         command.Parameters.Add("$restoreSession", SqliteType.Text).Value = RestoreSessionKey;
         command.Parameters.Add("$downloadFolder", SqliteType.Text).Value = DownloadFolderKey;
         command.Parameters.Add("$memoryMode", SqliteType.Text).Value = MemoryModeKey;
+        command.Parameters.Add("$adBlockEnabled", SqliteType.Text).Value = AdBlockEnabledKey;
+        command.Parameters.Add("$adBlockExceptions", SqliteType.Text).Value = AdBlockExceptionsKey;
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -57,7 +61,9 @@ public sealed class SettingsService
             HomePage = ReadNonEmptyString(values, HomePageKey, Default.HomePage),
             RestoreSession = ReadBoolean(values, RestoreSessionKey, Default.RestoreSession),
             DownloadFolder = ReadOptionalString(values, DownloadFolderKey),
-            MemoryMode = ReadEnum(values, MemoryModeKey, Default.MemoryMode)
+            MemoryMode = ReadEnum(values, MemoryModeKey, Default.MemoryMode),
+            AdBlockEnabled = ReadBoolean(values, AdBlockEnabledKey, Default.AdBlockEnabled),
+            AdBlockExceptions = ReadOptionalString(values, AdBlockExceptionsKey) ?? string.Empty
         };
     }
 
@@ -85,6 +91,10 @@ public sealed class SettingsService
             await UpsertAsync(connection, transaction, MemoryModeKey, normalized.MemoryMode.ToString(), updatedUtc, cancellationToken)
                 .ConfigureAwait(false);
 
+            await UpsertAsync(connection, transaction, AdBlockEnabledKey, normalized.AdBlockEnabled ? "1" : "0", updatedUtc, cancellationToken)
+                .ConfigureAwait(false);
+            await UpsertAsync(connection, transaction, AdBlockExceptionsKey, normalized.AdBlockExceptions, updatedUtc, cancellationToken)
+                .ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
