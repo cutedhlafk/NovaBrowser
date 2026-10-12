@@ -39,7 +39,8 @@ public partial class App : System.Windows.Application
                 new AddressResolver(),
                 themeService,
                 new MemoryManager(Dispatcher),
-                downloadService);
+                downloadService,
+                new NovaBlockService(System.IO.Path.Combine(AppPaths.AppDataDirectory, "novablock-rules.txt"), Dispatcher));
 
             var window = new MainWindow(_shell);
             MainWindow = window;
