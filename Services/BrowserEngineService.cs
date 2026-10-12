@@ -21,6 +21,7 @@ public sealed class BrowserEngineService : IDisposable
     private readonly Dispatcher _dispatcher;
     private readonly Dictionary<Guid, TabSubscription> _subscriptions = [];
     private readonly SemaphoreSlim _environmentLock = new(1, 1);
+    private readonly Dictionary<Guid, SemaphoreSlim> _initializationGates = [];
     private CoreWebView2Environment? _environment;
     private bool _disposed;
 
@@ -58,11 +59,21 @@ public sealed class BrowserEngineService : IDisposable
     public async Task EnsureInitializedAsync(BrowserTabViewModel tab, string homePage, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        if (tab.IsInitialized)
-        {
-            return;
-        }
+        if (tab.IsInitialized || tab.IsDisposed) return;
+        if (!_initializationGates.TryGetValue(tab.Id, out var gate))
+            _initializationGates[tab.Id] = gate = new SemaphoreSlim(1, 1);
 
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            if (tab.IsInitialized || tab.IsDisposed) return;
+            await InitializeTabCoreAsync(tab, homePage, cancellationToken);
+        }
+        finally { gate.Release(); }
+    }
+
+    private async Task InitializeTabCoreAsync(BrowserTabViewModel tab, string homePage, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!IsRuntimeAvailable())
@@ -94,6 +105,12 @@ public sealed class BrowserEngineService : IDisposable
             tab.StatusText = tab.LoadError;
             browser.Dispose();
             tab.BrowserView = null;
+            return;
+        }
+
+        if (tab.IsDisposed)
+        {
+            browser.Dispose();
             return;
         }
 
@@ -258,6 +275,7 @@ public sealed class BrowserEngineService : IDisposable
             return;
         }
 
+        _initializationGates.Remove(tab.Id);
         if (_subscriptions.Remove(tab.Id, out var subscription))
         {
             DetachEvents(subscription);
@@ -283,6 +301,7 @@ public sealed class BrowserEngineService : IDisposable
         }
 
         _subscriptions.Clear();
+        _initializationGates.Clear();
     }
 
     private async Task<CoreWebView2Environment> GetEnvironmentAsync()
@@ -369,6 +388,10 @@ public sealed class BrowserEngineService : IDisposable
 
         EventHandler<object> faviconChanged = async (_, _) => await UpdateFaviconAsync(tab, core);
 
+        EventHandler<object> audioChanged = (_, _) =>
+            tab.IsAudioPlaying = core.IsDocumentPlayingAudio;
+        tab.IsAudioPlaying = core.IsDocumentPlayingAudio;
+
         EventHandler<CoreWebView2NewWindowRequestedEventArgs> newWindowRequested = (_, args) =>
         {
             var uri = args.Uri;
@@ -399,6 +422,7 @@ public sealed class BrowserEngineService : IDisposable
         core.DocumentTitleChanged += documentTitleChanged;
         core.HistoryChanged += historyChanged;
         core.FaviconChanged += faviconChanged;
+        core.IsDocumentPlayingAudioChanged += audioChanged;
         core.NewWindowRequested += newWindowRequested;
         core.ProcessFailed += processFailed;
         core.WindowCloseRequested += windowCloseRequested;
@@ -417,6 +441,7 @@ public sealed class BrowserEngineService : IDisposable
             documentTitleChanged,
             historyChanged,
             faviconChanged,
+            audioChanged,
             newWindowRequested,
             processFailed,
             windowCloseRequested,
@@ -431,6 +456,7 @@ public sealed class BrowserEngineService : IDisposable
         subscription.Core.DocumentTitleChanged -= subscription.DocumentTitleChanged;
         subscription.Core.HistoryChanged -= subscription.HistoryChanged;
         subscription.Core.FaviconChanged -= subscription.FaviconChanged;
+        subscription.Core.IsDocumentPlayingAudioChanged -= subscription.AudioChanged;
         subscription.Core.NewWindowRequested -= subscription.NewWindowRequested;
         subscription.Core.ProcessFailed -= subscription.ProcessFailed;
         subscription.Core.WindowCloseRequested -= subscription.WindowCloseRequested;
@@ -474,6 +500,7 @@ public sealed class BrowserEngineService : IDisposable
         EventHandler<object> DocumentTitleChanged,
         EventHandler<object> HistoryChanged,
         EventHandler<object> FaviconChanged,
+        EventHandler<object> AudioChanged,
         EventHandler<CoreWebView2NewWindowRequestedEventArgs> NewWindowRequested,
         EventHandler<CoreWebView2ProcessFailedEventArgs> ProcessFailed,
         EventHandler<object> WindowCloseRequested,
