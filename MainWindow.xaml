@@ -132,6 +132,7 @@
                                         Height="24"
                                         Margin="0"
                                         ToolTip="Zamknij kartę (Ctrl+W)"
+                                        shell:WindowChrome.IsHitTestVisibleInChrome="True"
                                         Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                         CommandParameter="{Binding}">
 
@@ -149,6 +150,7 @@
 				<Button Grid.Column="1"
                         Style="{StaticResource ToolbarButtonStyle}"
                         ToolTip="Nowa karta (Ctrl+T)"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"
                         Command="{Binding NewTabCommand}">
 
 					<Path Style="{StaticResource ToolbarIconStyle}"
@@ -161,6 +163,7 @@
 				<Button Grid.Column="2"
                         Style="{StaticResource ToolbarButtonStyle}"
                         ToolTip="Ustawienia"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"
                         Command="{Binding ToggleSettingsCommand}">
 
 					<StackPanel Orientation="Horizontal"
