@@ -2,6 +2,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using Microsoft.Web.WebView2.Core;
+using System.Windows.Threading;
 
 namespace NovaBrowser.Services;
 
@@ -33,13 +34,15 @@ public sealed class NovaBlockService : IDisposable
     private readonly HashSet<string> _exclusions = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _hosts = new(BuiltInHosts, StringComparer.OrdinalIgnoreCase);
     private readonly HttpClient _client = new() { Timeout = TimeSpan.FromSeconds(25) };
+    private readonly Dispatcher _dispatcher;
     private readonly string _cachedRulesPath;
     private DateTimeOffset _lastCounterEvent = DateTimeOffset.MinValue;
     private bool _disposed;
 
-    public NovaBlockService(string cachedRulesPath)
+    public NovaBlockService(string cachedRulesPath, Dispatcher dispatcher)
     {
         _cachedRulesPath = cachedRulesPath;
+        _dispatcher = dispatcher;
         if (File.Exists(_cachedRulesPath))
         {
             try { AddRules(File.ReadAllText(_cachedRulesPath, Encoding.UTF8), _hosts); }
@@ -160,12 +163,15 @@ public sealed class NovaBlockService : IDisposable
         await File.WriteAllTextAsync(tmp, combined, Encoding.UTF8, cancellationToken).ConfigureAwait(false);
         File.Move(tmp, _cachedRulesPath, overwrite: true);
 
-        // Assign on the WPF dispatcher through the caller's captured context.
-        // Concurrent requests read the set by reference and never see mutations.
-        _hosts.Clear();
-        _hosts.UnionWith(parsed);
-        StateChanged?.Invoke();
-        return _hosts.Count;
+        // WebView2 raises network callbacks on its UI thread; update the filter set
+        // on that same dispatcher rather than racing with WebResourceRequested.
+        await _dispatcher.InvokeAsync(() =>
+        {
+            _hosts.Clear();
+            _hosts.UnionWith(parsed);
+            StateChanged?.Invoke();
+        });
+        return parsed.Count;
     }
 
     private bool IsBlocked(string host)
