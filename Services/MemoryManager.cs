@@ -73,6 +73,8 @@ public sealed class MemoryManager : IDisposable
 
     public int LowTargetTabCount => _appliedTargets.Count(pair => pair.Value == MemoryTargetLevel.Low);
 
+    public event Action? PolicyEvaluated;
+
     public int RegisteredTabCount
     {
         get
@@ -142,6 +144,7 @@ public sealed class MemoryManager : IDisposable
         VerifyUsable();
         RegisterCore(tab);
         ApplyTarget(tab, MemoryTargetLevel.Normal);
+        PolicyEvaluated?.Invoke();
     }
 
     /// <summary>
@@ -191,6 +194,7 @@ public sealed class MemoryManager : IDisposable
         _timer.Tick -= OnTimerTick;
         _appliedTargets.Clear();
         _tabs.Clear();
+        PolicyEvaluated = null;
     }
 
     private void OnTimerTick(object? sender, EventArgs eventArgs)
@@ -213,6 +217,7 @@ public sealed class MemoryManager : IDisposable
         {
             EvaluateTab(tab, now);
         }
+        PolicyEvaluated?.Invoke();
     }
 
     private void EvaluateTab(IMemoryManagedTab tab, DateTimeOffset now)
