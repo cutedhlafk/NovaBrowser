@@ -173,17 +173,17 @@
 
         <DockPanel Grid.Row="3" LastChildFill="True">
             <Border DockPanel.Dock="Right"
-                    Width="370"
+                    Width="390"
                     Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1,0,0,0"
                     Visibility="{Binding IsSidePanelOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <Grid Margin="16">
+                <Grid Margin="20">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                    <Grid Grid.Row="0" Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -326,19 +326,19 @@
                             <StackPanel>
                                 <TextBlock Text="Wygląd" FontWeight="SemiBold" Margin="0,0,0,6" />
                                 <TextBlock Text="Motyw" Style="{StaticResource MutedTextStyle}" />
-                                <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding SelectedTheme}" Margin="0,4,0,16" />
+                                <ComboBox Style="{StaticResource SettingsComboStyle}" ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding SelectedTheme}" Margin="0,4,0,16" />
                                 <TextBlock Text="Wyszukiwarka" Style="{StaticResource MutedTextStyle}" />
-                                <ComboBox ItemsSource="{Binding SearchEngineOptions}" SelectedItem="{Binding SelectedSearchEngine}" Margin="0,4,0,16" />
+                                <ComboBox Style="{StaticResource SettingsComboStyle}" ItemsSource="{Binding SearchEngineOptions}" SelectedItem="{Binding SelectedSearchEngine}" Margin="0,4,0,16" />
                                 <TextBlock Text="Strona startowa" Style="{StaticResource MutedTextStyle}" />
-                                <TextBox Text="{Binding HomePage, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16" />
+                                <TextBox Style="{StaticResource SettingsInputStyle}" Text="{Binding HomePage, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16" />
                                 <CheckBox Content="Przywracaj karty po ponownym uruchomieniu" IsChecked="{Binding RestoreSession}" Margin="0,0,0,16" />
                                 <TextBlock Text="Folder pobierania" Style="{StaticResource MutedTextStyle}" />
                                 <DockPanel Margin="0,4,0,16">
                                     <Button DockPanel.Dock="Right" Style="{StaticResource SubtleButtonStyle}" Content="Wybierz" Command="{Binding ChooseDownloadFolderCommand}" />
-                                    <TextBox Text="{Binding DownloadFolder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                                    <TextBox Style="{StaticResource SettingsInputStyle}" Text="{Binding DownloadFolder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
                                 </DockPanel>
                                 <TextBlock Text="Oszczędzanie pamięci" Style="{StaticResource MutedTextStyle}" />
-                                <ComboBox ItemsSource="{Binding MemoryModeOptions}" SelectedItem="{Binding SelectedMemoryMode}" Margin="0,4,0,16" />
+                                <ComboBox Style="{StaticResource SettingsComboStyle}" ItemsSource="{Binding MemoryModeOptions}" SelectedItem="{Binding SelectedMemoryMode}" Margin="0,4,0,16" />
                                 <TextBlock Text="Tryb zbalansowany obniża docelowe zużycie pamięci kart nieaktywnych dłużej niż 3 minuty. Karty nie są przeładowywane." TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" FontSize="12" Margin="0,0,0,16" />
                                 <StackPanel Orientation="Horizontal">
                                     <Button Style="{StaticResource AccentButtonStyle}" Content="Zapisz ustawienia" Command="{Binding SaveSettingsCommand}" />
@@ -354,15 +354,15 @@
                 <ContentControl Content="{Binding ActiveTab.BrowserView}" />
                 <Border Background="{DynamicResource WindowBackgroundBrush}" Visibility="{Binding HasNoTabs, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="360">
-                        <TextBlock Text="NovaBrowser" FontSize="32" FontWeight="SemiBold" HorizontalAlignment="Center" />
-                        <TextBlock Text="Szybka, spokojna przestrzeń do przeglądania sieci." TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource MutedTextStyle}" Margin="0,8,0,20" />
+                        <TextBlock Text="NovaBrowser" FontSize="36" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Szybka, spokojna przestrzeń do przeglądania sieci." TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource MutedTextStyle}" Margin="0,12,0,24" />
                         <Button Style="{StaticResource AccentButtonStyle}" Content="Otwórz kartę" Command="{Binding NewTabCommand}" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Border>
             </Grid>
         </DockPanel>
 
-        <Border Grid.Row="4" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="13,4">
+        <Border Grid.Row="4" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="18,6">
             <DockPanel LastChildFill="False">
                 <TextBlock Text="{Binding ActiveTab.StatusText}" Style="{StaticResource MutedTextStyle}" FontSize="11" TextTrimming="CharacterEllipsis" />
                 <TextBlock DockPanel.Dock="Right" Text="{Binding MemoryStatusText}" Style="{StaticResource MutedTextStyle}" FontSize="11" />
