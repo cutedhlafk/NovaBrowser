@@ -1,0 +1,23 @@
+name: Windows WPF build
+
+on:
+  push:
+    branches:
+      - feature/novablock2-memory2-incognito
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore NovaBrowser.csproj
+      - name: Build NovaBrowser
+        run: dotnet build NovaBrowser.csproj --no-restore --configuration Release -p:Platform=x64
