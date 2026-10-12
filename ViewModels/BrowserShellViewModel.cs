@@ -22,6 +22,7 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
     private readonly ThemeService _themeService;
     private readonly MemoryManager _memoryManager;
     private readonly DownloadService _downloadService;
+    private readonly NovaBlockService _novaBlock;
     private readonly Dictionary<BrowserTabViewModel, PropertyChangedEventHandler> _tabHandlers = [];
     private CancellationTokenSource? _sessionSaveCancellation;
     private BrowserSettings _settings = SettingsService.Default;
@@ -33,6 +34,8 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
     private string _selectedMemoryMode = "Zbalansowany";
     private string _homePage = SettingsService.Default.HomePage;
     private bool _restoreSession = SettingsService.Default.RestoreSession;
+    private bool _novaBlockEnabled = true;
+    private string _filterUpdateStatus = "Listy filtrów nie zostały jeszcze zaktualizowane.";
     private string _downloadFolder = string.Empty;
     private bool _isShuttingDown;
     private bool _disposed;
@@ -46,7 +49,8 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         AddressResolver addressResolver,
         ThemeService themeService,
         MemoryManager memoryManager,
-        DownloadService downloadService)
+        DownloadService downloadService,
+        NovaBlockService novaBlock)
     {
         _settingsService = settingsService;
         _historyService = historyService;
@@ -57,12 +61,24 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         _themeService = themeService;
         _memoryManager = memoryManager;
         _downloadService = downloadService;
+        _novaBlock = novaBlock;
+        _novaBlock.StateChanged += OnNovaBlockChanged;
+        _memoryManager.HasActiveDownloads = () => _downloadService.HasActiveDownloads;
+        _memoryManager.PolicyEvaluated += OnMemoryPolicyEvaluated;
 
         _browserEngine.NewTabRequestedAsync = url => CreateTabAsync(url, select: true);
         _browserEngine.PageVisitedAsync = OnPageVisitedAsync;
         _browserEngine.ShortcutRequested = HandleBrowserShortcut;
-        _browserEngine.CoreWebViewInitialized = core => _downloadService.Attach(core, () => EffectiveDownloadFolder);
-        _browserEngine.CoreWebViewDisposed = core => _downloadService.Detach(core);
+        _browserEngine.CoreWebViewInitialized = core =>
+        {
+            _downloadService.Attach(core, () => EffectiveDownloadFolder);
+            _novaBlock.Attach(core);
+        };
+        _browserEngine.CoreWebViewDisposed = core =>
+        {
+            _downloadService.Detach(core);
+            _novaBlock.Detach(core);
+        };
 
         NewTabCommand = new AsyncRelayCommand(() => CreateTabAsync());
         CloseTabCommand = new AsyncRelayCommand(CloseTabAsync);
@@ -94,6 +110,9 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         ChooseDownloadFolderCommand = new RelayCommand(ChooseDownloadFolder);
         SaveSettingsCommand = new AsyncRelayCommand(SaveSettingsAsync);
         ClearBrowsingDataCommand = new AsyncRelayCommand(ClearBrowsingDataAsync);
+        OpenPrivateWindowCommand = new RelayCommand(() => PrivateWindowRequested?.Invoke());
+        ToggleSiteProtectionCommand = new AsyncRelayCommand(ToggleSiteProtectionAsync);
+        UpdateNovaBlockFiltersCommand = new AsyncRelayCommand(UpdateNovaBlockFiltersAsync);
     }
 
     public ObservableCollection<BrowserTabViewModel> Tabs { get; } = [];
@@ -111,6 +130,7 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
     public IReadOnlyList<string> MemoryModeOptions { get; } = ["Zbalansowany", "Oszczędny", "Wydajność"];
 
     public event Action? FocusAddressRequested;
+    public event Action? PrivateWindowRequested;
 
     public BrowserTabViewModel? ActiveTab
     {
@@ -137,6 +157,7 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
                 _activeTab.MarkActivated();
                 _memoryManager.NotifyTabActivated(_activeTab);
                 AddressText = _activeTab.Address;
+                OnPropertyChanged(nameof(SiteProtectionLabel));
                 _ = ActivateTabAsync(_activeTab);
             }
             else
@@ -230,7 +251,44 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         set => SetProperty(ref _downloadFolder, value);
     }
 
-    public string MemoryStatusText => $"RAM: {SelectedMemoryMode}";
+    public string MemoryStatusText =>
+        $"RAM: {SelectedMemoryMode} • cel Low: {_memoryManager.LowTargetTabCount} kart";
+
+    public bool NovaBlockEnabled
+    {
+        get => _novaBlockEnabled;
+        set
+        {
+            if (SetProperty(ref _novaBlockEnabled, value))
+            {
+                _novaBlock.SetEnabled(value);
+                OnPropertyChanged(nameof(NovaBlockStatus));
+            }
+        }
+    }
+
+    public string NovaBlockStatus =>
+        $"Zablokowano: {_novaBlock.BlockedRequests} • filtrów domenowych: {_novaBlock.FilterCount}";
+
+    public string FilterUpdateStatus
+    {
+        get => _filterUpdateStatus;
+        private set => SetProperty(ref _filterUpdateStatus, value);
+    }
+
+    public string SiteProtectionLabel
+    {
+        get
+        {
+            if (ActiveTab is null ||
+                !Uri.TryCreate(ActiveTab.Address, UriKind.Absolute, out var uri) ||
+                uri.Scheme is not ("http" or "https"))
+                return "Brak strony do wykluczenia";
+            return _novaBlock.IsExcluded(uri.Host)
+                ? $"Włącz ochronę: {uri.Host}"
+                : $"Wyłącz ochronę: {uri.Host}";
+        }
+    }
 
     public AsyncRelayCommand NewTabCommand { get; }
     public AsyncRelayCommand CloseTabCommand { get; }
@@ -262,12 +320,16 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
     public RelayCommand ChooseDownloadFolderCommand { get; }
     public AsyncRelayCommand SaveSettingsCommand { get; }
     public AsyncRelayCommand ClearBrowsingDataCommand { get; }
+    public RelayCommand OpenPrivateWindowCommand { get; }
+    public AsyncRelayCommand ToggleSiteProtectionCommand { get; }
+    public AsyncRelayCommand UpdateNovaBlockFiltersCommand { get; }
 
     public async Task InitializeAsync()
     {
         ThrowIfDisposed();
         _settings = await _settingsService.GetAsync();
         ApplySettingsToEditor(_settings);
+        _novaBlock.Configure(_settings.AdBlockEnabled, _settings.AdBlockExcludedSites);
         _themeService.ApplyTheme(_settings.Theme);
         _memoryManager.SetMode(_settings.MemoryMode);
 
@@ -315,6 +377,7 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         }
         finally
         {
+            _novaBlock.Dispose();
             _downloadService.Dispose();
             _browserEngine.Dispose();
             _memoryManager.Dispose();
@@ -336,6 +399,8 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         }
 
         _tabHandlers.Clear();
+        _novaBlock.StateChanged -= OnNovaBlockChanged;
+        _memoryManager.PolicyEvaluated -= OnMemoryPolicyEvaluated;
     }
 
     private async Task CreateTabAsync(string? url = null, string? title = null, bool select = true)
@@ -582,6 +647,40 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         Bookmarks.Remove(bookmark);
     }
 
+
+    private void OnMemoryPolicyEvaluated() => OnPropertyChanged(nameof(MemoryStatusText));
+
+    private void OnNovaBlockChanged()
+    {
+        OnPropertyChanged(nameof(NovaBlockStatus));
+        OnPropertyChanged(nameof(SiteProtectionLabel));
+    }
+
+    private async Task ToggleSiteProtectionAsync()
+    {
+        if (ActiveTab is not { } tab ||
+            !Uri.TryCreate(tab.Address, UriKind.Absolute, out var uri) ||
+            uri.Scheme is not ("http" or "https")) return;
+
+        _novaBlock.ToggleExcludedHost(uri.Host);
+        await SaveSettingsAsync();
+        _browserEngine.Reload(tab);
+    }
+
+    private async Task UpdateNovaBlockFiltersAsync()
+    {
+        try
+        {
+            FilterUpdateStatus = "Aktualizowanie list...";
+            var count = await _novaBlock.UpdateFilterListsAsync();
+            FilterUpdateStatus = $"Zaktualizowano. Domeny: {count}.";
+        }
+        catch (Exception ex)
+        {
+            FilterUpdateStatus = $"Nie udało się zaktualizować: {ex.Message}";
+        }
+    }
+
     private void ChooseDownloadFolder()
     {
         using var dialog = new System.Windows.Forms.FolderBrowserDialog
@@ -614,7 +713,9 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
             HomePage = homePage,
             RestoreSession = RestoreSession,
             DownloadFolder = string.IsNullOrWhiteSpace(DownloadFolder) ? null : DownloadFolder.Trim(),
-            MemoryMode = memoryMode
+            MemoryMode = memoryMode,
+            AdBlockEnabled = NovaBlockEnabled,
+            AdBlockExcludedSites = _novaBlock.ExcludedSites
         };
 
         await _settingsService.SaveAsync(_settings);
@@ -678,6 +779,12 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
             if (ReferenceEquals(tab, ActiveTab) && args.PropertyName == nameof(BrowserTabViewModel.Address))
             {
                 AddressText = tab.Address;
+                OnPropertyChanged(nameof(SiteProtectionLabel));
+            }
+
+            if (args.PropertyName == nameof(BrowserTabViewModel.IsAudioPlaying))
+            {
+                _memoryManager.EvaluateNow();
             }
 
             if (args.PropertyName is nameof(BrowserTabViewModel.Address) or nameof(BrowserTabViewModel.Title))
@@ -753,6 +860,7 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         _selectedMemoryMode = MemoryModeLabel(settings.MemoryMode);
         _homePage = settings.HomePage;
         _restoreSession = settings.RestoreSession;
+        _novaBlockEnabled = settings.AdBlockEnabled;
         _downloadFolder = settings.DownloadFolder ?? string.Empty;
         OnPropertyChanged(nameof(SelectedTheme));
         OnPropertyChanged(nameof(SelectedSearchEngine));
@@ -760,6 +868,8 @@ public sealed class BrowserShellViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HomePage));
         OnPropertyChanged(nameof(RestoreSession));
         OnPropertyChanged(nameof(DownloadFolder));
+        OnPropertyChanged(nameof(NovaBlockEnabled));
+        OnPropertyChanged(nameof(NovaBlockStatus));
         OnPropertyChanged(nameof(MemoryStatusText));
     }
 

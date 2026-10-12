@@ -47,4 +47,8 @@ public sealed record BrowserSettings
     public string? DownloadFolder { get; init; }
 
     public MemorySavingMode MemoryMode { get; init; } = MemorySavingMode.Balanced;
+
+    public bool AdBlockEnabled { get; init; } = true;
+
+    public string AdBlockExcludedSites { get; init; } = string.Empty;
 }

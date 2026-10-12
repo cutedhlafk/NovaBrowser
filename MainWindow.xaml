@@ -745,6 +745,44 @@
                                     </StackPanel>
                                 </Border>
 
+                                <!-- PRIVACY -->
+                                <TextBlock Text="OCHRONA I PRYWATNOŚĆ"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontWeight="SemiBold" FontSize="11"
+                                           Margin="5,8,0,9" />
+                                <Border Style="{StaticResource SettingsCardStyle}">
+                                    <StackPanel>
+                                        <CheckBox Style="{StaticResource SettingsSwitchStyle}"
+                                                  IsChecked="{Binding NovaBlockEnabled, Mode=TwoWay}"
+                                                  Margin="0,0,0,14">
+                                            <TextBlock Text="NovaBlock 2.0 — blokuj reklamy i trackery"
+                                                       TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
+                                        </CheckBox>
+                                        <TextBlock Text="{Binding NovaBlockStatus}"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   TextWrapping="Wrap" FontSize="12" Margin="0,0,0,12" />
+                                        <Button Style="{StaticResource SubtleButtonStyle}"
+                                                Content="{Binding SiteProtectionLabel}"
+                                                Command="{Binding ToggleSiteProtectionCommand}"
+                                                HorizontalAlignment="Stretch" Margin="0,0,0,8" />
+                                        <Button Style="{StaticResource SubtleButtonStyle}"
+                                                Content="Aktualizuj listy filtrów"
+                                                Command="{Binding UpdateNovaBlockFiltersCommand}"
+                                                HorizontalAlignment="Stretch" Margin="0,0,0,8" />
+                                        <TextBlock Text="{Binding FilterUpdateStatus}"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   TextWrapping="Wrap" FontSize="11" Margin="0,0,0,15" />
+                                        <Button Style="{StaticResource AccentButtonStyle}"
+                                                Content="Otwórz nowe okno prywatne (Ctrl+Shift+N)"
+                                                Command="{Binding OpenPrivateWindowCommand}"
+                                                HorizontalAlignment="Stretch" Margin="0,0,0,7" />
+                                        <TextBlock Text="Incognito nie ukrywa adresu IP ani pobranych plików. Historia z prywatnych okien nie trafia do NovaBrowser."
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   TextWrapping="Wrap" FontSize="11" />
+                                    </StackPanel>
+                                </Border>
+
                                 <!-- ACTIONS -->
                                 <TextBlock Text="ZARZĄDZANIE DANYMI"
                                            Foreground="{DynamicResource AccentBrush}"
