@@ -598,76 +598,118 @@
 								</Style>
 							</ScrollViewer.Style>
 
-							<StackPanel>
-								<TextBlock Text="Wygląd"
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,0,6" />
-
-								<TextBlock Text="Motyw"
-                                           Style="{StaticResource MutedTextStyle}" />
-
-								<ComboBox Style="{StaticResource SettingsComboStyle}"
-                                          ItemsSource="{Binding ThemeOptions}"
-                                          SelectedItem="{Binding SelectedTheme}"
-                                          Margin="0,4,0,16" />
-
-								<TextBlock Text="Wyszukiwarka"
-                                           Style="{StaticResource MutedTextStyle}" />
-
-								<ComboBox Style="{StaticResource SettingsComboStyle}"
-                                          ItemsSource="{Binding SearchEngineOptions}"
-                                          SelectedItem="{Binding SelectedSearchEngine}"
-                                          Margin="0,4,0,16" />
-
-								<TextBlock Text="Strona startowa"
-                                           Style="{StaticResource MutedTextStyle}" />
-
-								<TextBox Style="{StaticResource SettingsInputStyle}"
-                                         Text="{Binding HomePage, UpdateSourceTrigger=PropertyChanged}"
-                                         Margin="0,4,0,16" />
-
-								<CheckBox Content="Przywracaj karty po ponownym uruchomieniu"
-                                          IsChecked="{Binding RestoreSession}"
-                                          Margin="0,0,0,16" />
-
-								<TextBlock Text="Folder pobierania"
-                                           Style="{StaticResource MutedTextStyle}" />
-
-								<DockPanel Margin="0,4,0,16">
-									<Button DockPanel.Dock="Right"
-                                            Style="{StaticResource SubtleButtonStyle}"
-                                            Content="Wybierz"
-                                            Command="{Binding ChooseDownloadFolderCommand}" />
-
-									<TextBox Style="{StaticResource SettingsInputStyle}"
-                                             Text="{Binding DownloadFolder, UpdateSourceTrigger=PropertyChanged}"
-                                             Margin="0,0,8,0" />
-								</DockPanel>
-
-								<TextBlock Text="Oszczędzanie pamięci"
-                                           Style="{StaticResource MutedTextStyle}" />
-
-								<ComboBox Style="{StaticResource SettingsComboStyle}"
-                                          ItemsSource="{Binding MemoryModeOptions}"
-                                          SelectedItem="{Binding SelectedMemoryMode}"
-                                          Margin="0,4,0,16" />
-
-								<TextBlock Text="Tryb zbalansowany obniża docelowe zużycie pamięci kart nieaktywnych dłużej niż 3 minuty. Karty nie są przeładowywane."
-                                           TextWrapping="Wrap"
+							<StackPanel Margin="0,0,4,22">
+                                <TextBlock Text="Personalizacja i zachowanie przeglądarki"
                                            Style="{StaticResource MutedTextStyle}"
+                                           TextWrapping="Wrap"
                                            FontSize="12"
-                                           Margin="0,0,0,16" />
+                                           Margin="0,0,0,17" />
 
-								<StackPanel Orientation="Horizontal">
-									<Button Style="{StaticResource AccentButtonStyle}"
-                                            Content="Zapisz ustawienia"
-                                            Command="{Binding SaveSettingsCommand}" />
+                                <!-- APPEARANCE -->
+                                <TextBlock Text="WYGLĄD I WYSZUKIWANIE"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontWeight="SemiBold" FontSize="11"
+                                           Margin="0,0,0,9" />
+                                <Border Style="{StaticResource SettingsCardStyle}">
+                                    <StackPanel>
+                                        <TextBlock Text="Motyw przeglądarki"
+                                                   Style="{StaticResource SettingsLabelStyle}" />
+                                        <ComboBox Style="{StaticResource SettingsComboStyle}"
+                                                  ItemsSource="{Binding ThemeOptions}"
+                                                  SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                                                  Margin="0,0,0,17" />
 
-									<Button Style="{StaticResource SubtleButtonStyle}"
-                                            Content="Wyczyść dane przeglądania"
-                                            Command="{Binding ClearBrowsingDataCommand}" />
-								</StackPanel>
-							</StackPanel>
+                                        <TextBlock Text="Domyślna wyszukiwarka"
+                                                   Style="{StaticResource SettingsLabelStyle}" />
+                                        <ComboBox Style="{StaticResource SettingsComboStyle}"
+                                                  ItemsSource="{Binding SearchEngineOptions}"
+                                                  SelectedItem="{Binding SelectedSearchEngine, Mode=TwoWay}"
+                                                  Margin="0,0,0,17" />
+
+                                        <TextBlock Text="Strona startowa"
+                                                   Style="{StaticResource SettingsLabelStyle}" />
+                                        <TextBox Style="{StaticResource SettingsInputStyle}"
+                                                 Text="{Binding HomePage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- SESSION -->
+                                <TextBlock Text="SESJA I POBIERANIE"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontWeight="SemiBold" FontSize="11"
+                                           Margin="5,8,0,9" />
+                                <Border Style="{StaticResource SettingsCardStyle}">
+                                    <StackPanel>
+                                        <CheckBox Style="{StaticResource SettingsSwitchStyle}"
+                                                  IsChecked="{Binding RestoreSession, Mode=TwoWay}"
+                                                  Margin="0,0,0,18">
+                                            <TextBlock Text="Przywracaj karty po uruchomieniu"
+                                                       TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       FontSize="12" />
+                                        </CheckBox>
+
+                                        <TextBlock Text="Folder pobierania"
+                                                   Style="{StaticResource SettingsLabelStyle}" />
+                                        <DockPanel LastChildFill="True">
+                                            <Button DockPanel.Dock="Right"
+                                                    Style="{StaticResource SubtleButtonStyle}"
+                                                    Content="Wybierz"
+                                                    Margin="7,0,0,0"
+                                                    Command="{Binding ChooseDownloadFolderCommand}" />
+                                            <TextBox Style="{StaticResource SettingsInputStyle}"
+                                                     Text="{Binding DownloadFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- PERFORMANCE -->
+                                <TextBlock Text="WYDAJNOŚĆ"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontWeight="SemiBold" FontSize="11"
+                                           Margin="5,8,0,9" />
+                                <Border Style="{StaticResource SettingsCardStyle}">
+                                    <StackPanel>
+                                        <TextBlock Text="Tryb oszczędzania pamięci"
+                                                   Style="{StaticResource SettingsLabelStyle}" />
+                                        <ComboBox Style="{StaticResource SettingsComboStyle}"
+                                                  ItemsSource="{Binding MemoryModeOptions}"
+                                                  SelectedItem="{Binding SelectedMemoryMode, Mode=TwoWay}"
+                                                  Margin="0,0,0,12" />
+                                        <TextBlock Text="Tryb zbalansowany ogranicza zużycie RAM-u nieaktywnych kart po 3 minutach. Strony nie są automatycznie przeładowywane."
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- ACTIONS -->
+                                <TextBlock Text="ZARZĄDZANIE DANYMI"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontWeight="SemiBold" FontSize="11"
+                                           Margin="5,8,0,9" />
+                                <Border Style="{StaticResource SettingsCardStyle}">
+                                    <StackPanel>
+                                        <TextBlock Text="Zapisz wybrane preferencje lub usuń lokalne dane przeglądania."
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   FontSize="12"
+                                                   Margin="0,0,0,13" />
+
+                                        <Button Style="{StaticResource AccentButtonStyle}"
+                                                Content="Zapisz ustawienia"
+                                                HorizontalAlignment="Stretch"
+                                                Margin="0,0,0,9"
+                                                Command="{Binding SaveSettingsCommand}" />
+
+                                        <Button Style="{StaticResource SubtleButtonStyle}"
+                                                Content="Wyczyść dane przeglądania"
+                                                HorizontalAlignment="Stretch"
+                                                Margin="0"
+                                                Command="{Binding ClearBrowsingDataCommand}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
 						</ScrollViewer>
 					</Grid>
 				</Grid>
