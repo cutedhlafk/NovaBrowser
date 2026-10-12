@@ -17,6 +17,7 @@ public partial class MainWindow : Window
         DataContext = _viewModel;
         InitializeComponent();
         _viewModel.FocusAddressRequested += FocusAddress;
+        _viewModel.PrivateWindowRequested += OpenPrivateWindow;
     }
 
     private void AddressBox_OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -37,6 +38,10 @@ public partial class MainWindow : Window
 
         switch (e.Key)
         {
+            case Key.N when (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift:
+                _viewModel.OpenPrivateWindowCommand.Execute(null);
+                e.Handled = true;
+                break;
             case Key.L:
                 _viewModel.FocusAddressCommand.Execute(null);
                 e.Handled = true;
@@ -121,6 +126,12 @@ public partial class MainWindow : Window
         Close();
     }
 
+
+    private void OpenPrivateWindow()
+    {
+        var window = new PrivateWindow();
+        window.Show();
+    }
 
     private void FocusAddress()
     {
